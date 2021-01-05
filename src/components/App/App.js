@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useEffect, useState } from "react";
 
 import Searchbar from "../Searchbar/Searchbar";
 import ImageGallery from "../ImageGallery/ImageGallery";
@@ -10,102 +10,96 @@ import apiSearch from "../../services/api";
 
 import "./App.css";
 
-export default class App extends Component {
-  state = {
-    searchQuery: "",
-    loading: false,
-    galleryItems: [],
-    page: 1,
-    showModal: false,
-    largeImageURL: "",
-    totalHits: 0,
-  };
+function App() {
 
-  componentDidUpdate(prevProps, prevState) {
-    const prevQuery = prevState.searchQuery;
-    const nextQuery = this.state.searchQuery;
+const [searchQuery, setSearchQuery] = useState('');
+const [loading, setLoading] = useState(false);
+const [galleryItems, setGalleryItems] = useState([]);
+const [page, setPage] = useState(1);
+const [showModal, setShowModal] = useState(false);
+const [largeImageURL, setLargeImageUrl] = useState('');
+const [totalHits, setTotalHits] = useState(0);
 
-    if (prevQuery !== nextQuery || prevState.page !== this.state.page) {
-      this.fetchItems();
-    }
+
+useEffect(()=>{
+  if(searchQuery === ''){
+    return
   }
+  fetchItems(searchQuery)
+  setPage(prevPage => prevPage + 1)
+  
+}, [searchQuery])
 
-  onScroll = () => {
+  const onScroll = () => {
     window.scrollTo({
       top: document.documentElement.scrollHeight,
       behavior: "smooth",
     });
   };
 
-  nextPage = () => {
-    this.setState(({ page }) => {
-      return { page: page + 1 };
-    });
+  const nextPage = () => {
+  setPage(prevPage => prevPage + 1)
+  fetchItems(searchQuery, page)
   };
 
-  fetchItems = () => {
-    const { searchQuery, page } = this.state;
-    this.setState({ loading: true });
-
+  const fetchItems = (query, page) => {
+  setLoading(true)
     apiSearch
-      .apiSearch(searchQuery, page)
+      .apiSearch(query, page)
       .then((data) => {
         const { hits, totalHits } = data;
 
-        this.setState((prevState) => ({
-          galleryItems: [...prevState.galleryItems, ...hits],
-          totalHits: totalHits,
-        }));
+        setGalleryItems([...galleryItems, ...hits])
+        setTotalHits(totalHits)
       })
       .catch((e) => {
         console.log(e);
       })
       .finally(() => {
-        this.setState({ loading: false });
-        this.onScroll();
+        setLoading(false);
+        onScroll();
       });
   };
 
-  handleSearchApi = (query) => {
-    this.setState({ searchQuery: query, page: 1, galleryItems: [] });
-  };
-
-  openModal = (itemsId) => {
-    const itemId = this.state.galleryItems.find(({ id }) => id === itemsId);
-
-    this.setState({
-      largeImageURL: itemId.largeImageURL,
-      showModal: true,
-    });
-  };
-
-  closeModal = (handleKeyDown) => {
-    this.setState({
-      showModal: false,
-      largeImageURL: "",
-    });
-    window.removeEventListener("keydown", handleKeyDown);
-  };
-
-  render() {
-    const { loading, galleryItems, showModal, largeImageURL } = this.state;
-
-    return (
-      <>
-        <Searchbar onSubmit={this.handleSearchApi} />
-        {showModal && (
-          <Modal onCloseItem={this.closeModal} largeImageURL={largeImageURL} />
-        )}
-        {galleryItems.length > 0 && (
-          <ImageGallery items={galleryItems} onItemClick={this.openModal} />
-        )}
-        {loading && <Loader />}
-        {galleryItems.length > 0 &&
-          !loading &&
-          this.state.galleryItems.length !== this.state.totalHits && (
-            <Button onClickBtn={this.nextPage} />
-          )}
-      </>
-    );
+  const handleSearchApi = (query) => {
+    if(query !== searchQuery) {
+    setSearchQuery(query)
+    setGalleryItems([]);
   }
+  return
+  };
+
+  const openModal = (itemsId) => {
+    const itemId = galleryItems.find(({ id }) => id === itemsId);
+
+    setLargeImageUrl(itemId.largeImageURL)
+    setShowModal(true)
+    
+  };
+
+  const closeModal = () => {
+
+    setShowModal(false);
+    setLargeImageUrl('')
+  };
+
+  return (
+          <>
+            <Searchbar onSubmit={handleSearchApi} />
+            {showModal && (
+              <Modal onCloseItem={closeModal} largeImageURL={largeImageURL} />
+            )}
+            {galleryItems.length > 0 && (
+              <ImageGallery items={galleryItems} onItemClick={openModal} />
+            )}
+            {loading && <Loader />}
+            {galleryItems.length > 0 &&
+              !loading &&
+              galleryItems.length !== totalHits && (
+                <Button onClickBtn={nextPage} />
+              )}
+          </>
+        );
 }
+
+export default App;

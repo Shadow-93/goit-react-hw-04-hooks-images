@@ -1,18 +1,24 @@
-import React from "react";
+import React, {useEffect} from "react";
 import PropTypes from "prop-types";
 
 function Modal({ onCloseItem, largeImageURL }) {
-  window.addEventListener("keydown", handleKeyDown);
 
-  function handleKeyDown(e) {
+  useEffect( () => { 
+    window.addEventListener("keydown", handleKeyDown)
+    return function cleanup() {
+      window.removeEventListener("keydown", handleKeyDown)
+}
+});
+  
+  const  handleKeyDown = (e) => {
     if (e.code === "Escape") {
-      onCloseItem(handleKeyDown);
+      onCloseItem();
     }
   }
 
-  function backdropClose(e) {
+  const backdropClose = (e) => {
     if (e.currentTarget === e.target) {
-      onCloseItem(handleKeyDown);
+      onCloseItem();
     }
   }
 
