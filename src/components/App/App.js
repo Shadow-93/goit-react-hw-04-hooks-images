@@ -11,24 +11,22 @@ import apiSearch from "../../services/api";
 import "./App.css";
 
 function App() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [galleryItems, setGalleryItems] = useState([]);
+  const [page, setPage] = useState(1);
+  const [showModal, setShowModal] = useState(false);
+  const [largeImageURL, setLargeImageUrl] = useState("");
+  const [totalHits, setTotalHits] = useState(0);
 
-const [searchQuery, setSearchQuery] = useState('');
-const [loading, setLoading] = useState(false);
-const [galleryItems, setGalleryItems] = useState([]);
-const [page, setPage] = useState(1);
-const [showModal, setShowModal] = useState(false);
-const [largeImageURL, setLargeImageUrl] = useState('');
-const [totalHits, setTotalHits] = useState(0);
-
-
-useEffect(()=>{
-  if(searchQuery === ''){
-    return
-  }
-  fetchItems(searchQuery)
-  setPage(prevPage => prevPage + 1)
-  
-}, [searchQuery])
+  useEffect(() => {
+    if (searchQuery === "") {
+      return;
+    }
+    fetchItems(searchQuery);
+    setPage((prevPage) => prevPage + 1);
+    // eslint-disable-next-line
+  }, [searchQuery]);
 
   const onScroll = () => {
     window.scrollTo({
@@ -38,19 +36,19 @@ useEffect(()=>{
   };
 
   const nextPage = () => {
-  setPage(prevPage => prevPage + 1)
-  fetchItems(searchQuery, page)
+    setPage((prevPage) => prevPage + 1);
+    fetchItems(searchQuery, page);
   };
 
   const fetchItems = (query, page) => {
-  setLoading(true)
+    setLoading(true);
     apiSearch
       .apiSearch(query, page)
       .then((data) => {
         const { hits, totalHits } = data;
 
-        setGalleryItems([...galleryItems, ...hits])
-        setTotalHits(totalHits)
+        setGalleryItems([...galleryItems, ...hits]);
+        setTotalHits(totalHits);
       })
       .catch((e) => {
         console.log(e);
@@ -62,44 +60,40 @@ useEffect(()=>{
   };
 
   const handleSearchApi = (query) => {
-    if(query !== searchQuery) {
-    setSearchQuery(query)
-    setGalleryItems([]);
-  }
-  return
+    if (query !== searchQuery) {
+      setSearchQuery(query);
+      setGalleryItems([]);
+    }
+    return;
   };
 
   const openModal = (itemsId) => {
     const itemId = galleryItems.find(({ id }) => id === itemsId);
 
-    setLargeImageUrl(itemId.largeImageURL)
-    setShowModal(true)
-    
+    setLargeImageUrl(itemId.largeImageURL);
+    setShowModal(true);
   };
 
   const closeModal = () => {
-
     setShowModal(false);
-    setLargeImageUrl('')
+    setLargeImageUrl("");
   };
 
   return (
-          <>
-            <Searchbar onSubmit={handleSearchApi} />
-            {showModal && (
-              <Modal onCloseItem={closeModal} largeImageURL={largeImageURL} />
-            )}
-            {galleryItems.length > 0 && (
-              <ImageGallery items={galleryItems} onItemClick={openModal} />
-            )}
-            {loading && <Loader />}
-            {galleryItems.length > 0 &&
-              !loading &&
-              galleryItems.length !== totalHits && (
-                <Button onClickBtn={nextPage} />
-              )}
-          </>
-        );
+    <>
+      <Searchbar onSubmit={handleSearchApi} />
+      {showModal && (
+        <Modal onCloseItem={closeModal} largeImageURL={largeImageURL} />
+      )}
+      {galleryItems.length > 0 && (
+        <ImageGallery items={galleryItems} onItemClick={openModal} />
+      )}
+      {loading && <Loader />}
+      {galleryItems.length > 0 &&
+        !loading &&
+        galleryItems.length !== totalHits && <Button onClickBtn={nextPage} />}
+    </>
+  );
 }
 
 export default App;
