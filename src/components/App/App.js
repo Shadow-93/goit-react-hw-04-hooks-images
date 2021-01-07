@@ -14,7 +14,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [galleryItems, setGalleryItems] = useState([]);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [largeImageURL, setLargeImageUrl] = useState("");
   const [totalHits, setTotalHits] = useState(0);
@@ -23,10 +23,10 @@ function App() {
     if (searchQuery === "") {
       return;
     }
-    fetchItems(searchQuery);
-    setPage((prevPage) => prevPage + 1);
+    fetchItems(searchQuery, page);
+    // setPage((prevPage) => prevPage + 1);
     // eslint-disable-next-line
-  }, [searchQuery]);
+  }, [searchQuery, page]);
 
   const onScroll = () => {
     window.scrollTo({
@@ -63,6 +63,7 @@ function App() {
     if (query !== searchQuery) {
       setSearchQuery(query);
       setGalleryItems([]);
+      setPage(1);
     }
     return;
   };
