@@ -24,7 +24,6 @@ function App() {
       return;
     }
     fetchItems(searchQuery, page);
-    // setPage((prevPage) => prevPage + 1);
     // eslint-disable-next-line
   }, [searchQuery, page]);
 
@@ -37,7 +36,6 @@ function App() {
 
   const nextPage = () => {
     setPage((prevPage) => prevPage + 1);
-    fetchItems(searchQuery, page);
   };
 
   const fetchItems = (query, page) => {
